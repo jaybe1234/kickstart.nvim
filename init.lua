@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -102,7 +102,7 @@ vim.g.have_nerd_font = false
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -170,6 +170,11 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', 'W', vim.diagnostic.open_float, { desc = 'Show diagnostic[w]' })
+
+-- Move deleted data to blackhole
+vim.keymap.set('n', 'd', '"_d')
+vim.keymap.set('v', 'd', '"_d')
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -193,7 +198,6 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -427,6 +431,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>sD', builtin.lsp_workspace_symbols, { desc = '[S]earch [D]efinition' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -617,6 +622,7 @@ require('lazy').setup({
         end,
       })
 
+<<<<<<< Updated upstream
       -- Diagnostic Config
       -- See :help vim.diagnostic.Opts
       vim.diagnostic.config {
@@ -645,6 +651,17 @@ require('lazy').setup({
           end,
         },
       }
+=======
+      -- Change diagnostic symbols in the sign column (gutter)
+      if vim.g.have_nerd_font then
+        local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
+        local diagnostic_signs = {}
+        for type, icon in pairs(signs) do
+          diagnostic_signs[vim.diagnostic.severity[type]] = icon
+        end
+        vim.diagnostic.config { signs = { text = diagnostic_signs } }
+      end
+>>>>>>> Stashed changes
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -675,6 +692,18 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        pylsp = {
+          settings = {
+            pylsp = {
+              plugins = {
+                pycodestyle = {
+                  ignore = { 'W391' },
+                  maxLineLength = 100,
+                },
+              },
+            },
+          },
+        },
 
         lua_ls = {
           -- cmd = { ... },
@@ -769,6 +798,64 @@ require('lazy').setup({
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
     },
+  },
+
+  -- FIXME: NVIM-DAP
+  {
+    'mfussenegger/nvim-dap',
+    recommended = true,
+    desc = 'Debugging support. Requires language specific adapters to be configured. (see lang extras)',
+
+    dependencies = {
+      'rcarriga/nvim-dap-ui',
+      -- virtual text for the debugger
+      {
+        'theHamsta/nvim-dap-virtual-text',
+        opts = {},
+      },
+    },
+
+    -- stylua: ignore
+    keys = {
+      { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
+      { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
+      { "<leader>dc", function() require("dap").continue() end, desc = "Run/Continue" },
+      { "<leader>da", function() require("dap").continue({ before = get_args }) end, desc = "Run with Args" },
+      { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to Cursor" },
+      { "<leader>dg", function() require("dap").goto_() end, desc = "Go to Line (No Execute)" },
+      { "<leader>di", function() require("dap").step_into() end, desc = "Step Into" },
+      { "<leader>dj", function() require("dap").down() end, desc = "Down" },
+      { "<leader>dk", function() require("dap").up() end, desc = "Up" },
+      { "<leader>dl", function() require("dap").run_last() end, desc = "Run Last" },
+      { "<leader>do", function() require("dap").step_out() end, desc = "Step Out" },
+      { "<leader>dO", function() require("dap").step_over() end, desc = "Step Over" },
+      { "<leader>dP", function() require("dap").pause() end, desc = "Pause" },
+      { "<leader>dr", function() require("dap").repl.toggle() end, desc = "Toggle REPL" },
+      { "<leader>ds", function() require("dap").session() end, desc = "Session" },
+      { "<leader>dt", function() require("dap").terminate() end, desc = "Terminate" },
+      { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
+    },
+
+    config = function()
+      -- load mason-nvim-dap here, after all adapters have been setup
+      if LazyVim.has 'mason-nvim-dap.nvim' then
+        require('mason-nvim-dap').setup(LazyVim.opts 'mason-nvim-dap.nvim')
+      end
+
+      vim.api.nvim_set_hl(0, 'DapStoppedLine', { default = true, link = 'Visual' })
+
+      for name, sign in pairs(LazyVim.config.icons.dap) do
+        sign = type(sign) == 'table' and sign or { sign }
+        vim.fn.sign_define('Dap' .. name, { text = sign[1], texthl = sign[2] or 'DiagnosticInfo', linehl = sign[3], numhl = sign[3] })
+      end
+
+      -- setup dap config by VsCode launch.json file
+      local vscode = require 'dap.ext.vscode'
+      local json = require 'plenary.json'
+      vscode.json_decode = function(str)
+        return vim.json.decode(json.json_strip_comments(str))
+      end
+    end,
   },
 
   { -- Autocompletion
@@ -976,7 +1063,13 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
-
+  -- {
+  --   'windwp/nvim-autopairs',
+  --   event = 'InsertEnter',
+  --   config = true,
+  --   -- use opts = {} for passing setup options
+  --   -- this is equivalent to setup({}) function
+  -- },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -986,18 +1079,20 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'custom.plugins.lazygit',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   -- { import = 'custom.plugins' },
+  require 'custom.plugins.jupyter',
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
