@@ -788,7 +788,6 @@ require('lazy').setup({
     },
   },
 
-  -- FIXME: NVIM-DAP
   {
     'mfussenegger/nvim-dap',
     recommended = true,
