@@ -224,6 +224,27 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+-- Create an autocommand for markdown files
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'markdown',
+  callback = function()
+    -- Enable line wrapping
+    vim.opt_local.wrap = true
+
+    -- Set the width for hard wrapping (80 is standard)
+    vim.opt_local.textwidth = 80
+
+    -- "t" stands for auto-wrap text using textwidth
+    -- "q" allows formatting of comments with 'gq'
+    -- "n" recognizes numbered lists
+    -- "j" removes comment leaders when joining lines
+    vim.opt_local.formatoptions:append 'tqnj'
+
+    -- Optional: Visual cues
+    vim.opt_local.colorcolumn = '80' -- Shows a vertical bar at the limit
+  end,
+})
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -538,7 +559,7 @@ require('lazy').setup({
           -- to define small helper and utility functions so you don't have to repeat yourself.
           --
           -- In this case, we create a function that lets us more easily define mappings specific
-          -- for LSP related items. It sets the mode, buffer and description for us each time.
+          -- for LSP related items. It sets the mode, buffer and description for us each time.war
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
@@ -1027,6 +1048,24 @@ require('lazy').setup({
     end,
   },
   { 'wakatime/vim-wakatime', lazy = false },
+  {
+    'plasticboy/vim-markdown',
+    ft = { 'markdown' },
+    dependencies = {
+      'godlygeek/tabular',
+    },
+    config = function()
+      -- never ever fold!
+      vim.g.vim_markdown_folding_disabled = 1
+      -- support front-matter in .md files
+      vim.g.vim_markdown_frontmatter = 1
+      -- 'o' on a list item should insert at same level
+      vim.g.vim_markdown_new_list_item_indent = 0
+      -- don't add bullets when wrapping:
+      -- https://github.com/preservim/vim-markdown/issues/232
+      vim.g.vim_markdown_auto_insert_bullets = 0
+    end,
+  },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
@@ -1081,6 +1120,7 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   -- { import = 'custom.plugins' },
+  { import = 'custom.plugins.99' },
   require 'custom.plugins.jupyter',
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
@@ -1110,7 +1150,7 @@ require('lazy').setup({
 })
 
 -- Load custom LSP configurations
-require 'lsp.seismic'
+-- require 'lsp.seismic'
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
