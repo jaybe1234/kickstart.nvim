@@ -770,6 +770,42 @@ require('lazy').setup({
       }
     end,
   },
+  -- option to center the editor
+  {
+    'shortcuts/no-neck-pain.nvim',
+    version = '*',
+    opts = {
+      mappings = {
+        enabled = true,
+        toggle = false,
+        toggleLeftSide = false,
+        toggleRightSide = false,
+        widthUp = false,
+        widthDown = false,
+        scratchPad = false,
+      },
+    },
+    config = function()
+      vim.keymap.set('', '<leader>t', function()
+        vim.cmd [[
+					:NoNeckPain
+					:set formatoptions-=tc linebreak tw=0 cc=0 wrap wm=20 noautoindent nocindent nosmartindent indentkeys=
+				]]
+        -- make 0, ^ and $ behave better in wrapped text
+        vim.keymap.set('n', '0', 'g0')
+        vim.keymap.set('n', '$', 'g$')
+        vim.keymap.set('n', '^', 'g^')
+      end)
+    end,
+  },
+  -- auto-cd to root of git project
+  -- 'airblade/vim-rooter'
+  {
+    'notjedi/nvim-rooter.lua',
+    config = function()
+      require('nvim-rooter').setup()
+    end,
+  },
 
   { -- Autoformat
     'stevearc/conform.nvim',
@@ -871,6 +907,7 @@ require('lazy').setup({
       vscode.load_launchjs()
     end,
   },
+  { 'saghen/blink.lib' },
   { -- Autocompletion
     'saghen/blink.cmp',
     event = 'VimEnter',
@@ -1164,7 +1201,7 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   -- { import = 'custom.plugins' },
-  { import = 'custom.plugins.99' },
+  -- { import = 'custom.plugins.99' },
   require 'custom.plugins.jupyter',
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
