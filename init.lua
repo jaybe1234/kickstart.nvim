@@ -1020,7 +1020,9 @@ require('lazy').setup({
           comments = { italic = false }, -- Disable italics in comments
         },
         on_highlights = function(hl)
-          hl.Comment = { fg = '#C46E22' }
+          hl.Comment = { fg = '#F49E22' }
+          hl['@comment.documentation'] = { link = 'Comment' }
+          hl['@string.documentation'] = { link = 'Comment' }
         end,
         on_colors = function(c)
           c.fg_gutter = '#808080'
@@ -1170,6 +1172,14 @@ require('lazy').setup({
           end
         end,
       })
+    end,
+  },
+  {
+    'https://codeberg.org/esensar/nvim-dev-container',
+    dependencies = 'nvim-treesitter/nvim-treesitter',
+    config = function()
+      -- See more: https://github.com/debdutdeb/devcontainer.nvim
+      require('devcontainer').setup {}
     end,
   },
   -- {
